@@ -12,13 +12,13 @@ SYSOPEN equ 2
 SYSCLOSE equ 3
 SYSSEEK equ 8
 
-section .data
-    digit db 0
+section .bss
+    digit resb 0
 
 ; for printing numbers (int)
 
-%macro print 1
-    mov rax, %1
+%macro printNumber 1
+    mov eax, %1
 
     %%printInt:
         mov rcx, digit      ;set rcx to digit memory address
@@ -57,3 +57,20 @@ section .data
 
 %endmacro
 
+
+%macro print 2
+    mov eax, SYSWRITE
+    mov edi, 1
+    mov esi, %1
+    mov edx, %2
+    syscall
+%endmacro
+    
+
+%macro mod 1
+    xor eax, eax
+    mov r12b, %1
+    mov ax, r8w
+    div r12b
+    cmp ah, 0
+%endmacro
