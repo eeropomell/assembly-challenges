@@ -1,5 +1,8 @@
 %include "MACRO.asm"
 
+; finds all prime numbers within a given range
+; max value it can take is about 2 million
+; takes about less than 2 seconds to complete
 
 section .bss 
     buffer resb 100
