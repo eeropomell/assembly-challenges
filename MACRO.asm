@@ -14,11 +14,13 @@ SYSSEEK equ 8
 
 section .bss
     digit resb 0
+    length resb 1
+    number resb 1
 
 ; for printing numbers (int)
 
 %macro printNumber 1
-    mov eax, %1
+    mov rax, %1
 
     %%printInt:
         mov rcx, digit      ;set rcx to digit memory address
@@ -57,7 +59,6 @@ section .bss
 
 %endmacro
 
-
 %macro print 2
     mov eax, SYSWRITE
     mov edi, 1
@@ -66,11 +67,72 @@ section .bss
     syscall
 %endmacro
     
-
 %macro mod 1
     xor eax, eax
     mov r12b, %1
     mov ax, r8w
     div r12b
     cmp ah, 0
+%endmacro
+
+%macro crossOut 4
+    xor rdi, rdi     ;edi keeps track of how many numbers were crossed out
+                     ;if 0 end loop
+    mov rbx, %1     ;array
+    add rbx, %2     ;move position to starting index
+    mov rax, %3     ;every nth number to be crossed out 
+
+    mov rbp, %4     ; array length
+    mov rcx, 0      ;counter
+    
+    %%loop:
+
+        add rcx, rax
+        cmp rcx, rbp
+        jge %%exit
+
+        add rbx, rax
+        cmp byte [rbx], 0           
+        je %%crossout
+
+        jmp %%loop
+    %%crossout:
+        mov byte [rbx], 1
+        inc rdi
+        jmp %%loop
+
+    %%exit:
+        cmp rdi, 0
+%endmacro
+
+
+;example:
+;"123"  -> starting from 1
+
+;1 + 0 * 10  = 1
+;2 + 1 * 10  = 12
+;3 + 12 * 10 = 123
+
+%macro stringToNumber 1
+    mov rdi, 0                 ; number stored here
+    mov ebx, %1  
+    mov ecx, 0   
+
+    %%loop:
+    xor esi, esi
+    mov sil, byte [ebx + ecx]
+    sub sil, 48
+
+    cmp esi, 9                  ;if this is greater than 9 the string has ended
+    jg %%exit
+
+    mov rax, 10
+    mul rdi                     ; multiply by 10
+    add rsi, rax
+    mov rdi, rsi
+
+    inc ecx
+    jmp %%loop
+    
+    %%exit:
 %endmacro
