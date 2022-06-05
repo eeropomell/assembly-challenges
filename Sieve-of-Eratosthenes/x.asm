@@ -4,18 +4,18 @@
 ; max value it can take is about 4 billiongit 
 
 
-%macro crossOut 4
+%macro crossOut 3
     mov rbx, %1     ;array
-    mov rcx, %4
+    mov rcx, %3
     add rcx, rbx    ; last array element / array length
 
     xor edx, edx
-    mov rax, %3     ;every nth number to be crossed out 
+    mov rax, %2     ;every nth number to be crossed out 
     mov rsi, rax
     imul rsi
     sub rcx, 1
 
-    mov rax, %3
+    mov rax, %2
     %%loop:
         add rbx, rax
         cmp rbx, rcx
@@ -58,7 +58,7 @@ section .text
 
                 mov rax, [numbers]
                 mov rbp, [arrayLength]
-                crossOut rax, r10, r11, rbp           ;if this returns 0 it means all non primes are already crossed out   
+                crossOut rax, r11, rbp           ;if this returns 0 it means all non primes are already crossed out   
                 call getNextPrime                           ; get next r10d and r11d
                 jmp .loop
             return:
