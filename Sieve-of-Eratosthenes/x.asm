@@ -1,5 +1,9 @@
 %include "MACRO.asm"
 
+; finds all prime numbers within a given range
+; max value it can take is about 2 million
+; takes ~2 seconds to complete
+
 
 section .bss 
     buffer resb 100
@@ -22,24 +26,24 @@ section .text
         algorithm: 
             mov r10, 0     ;starting index
             mov r11, 2     ;every nth number to be crossed out
-            loop3:
+            .loop:
                 mov rax, [numbers]
                 mov rbp, [arrayLength]
                 crossOut rax, r10, r11, rbp           ;if this returns 0 it means all non primes are already crossed out   
                 jz return               
-                call getIndex                           ; get next r10d and r11d
-                jmp loop3
+                call getNextPrime                           ; get next r10d and r11d
+                jmp .loop
             return:
                 ret
 
-        getIndex:                 ;gets the next item that isnt already crossed out (0 means not crossed)
+        getNextPrime:                 ;gets the next item that isnt already crossed out (0 means not crossed)
             mov rax, [numbers]
-            loop2:
+            .loop:
                 inc r10
                 inc r11
      
                 cmp byte [rax + r10], 0             
-                jnz loop2
+                jnz .loop
 
                 ret
 
@@ -66,12 +70,12 @@ section .text
             mov rbp, [arrayLength]
             mov rax, [numbers]
             
-            initloop:
+            .loop:
                 mov byte [rax + rbx], 0
 
                 inc rbx
                 cmp rbx, rbp
-                jl initloop
+                jl .loop
             ret
 
         printNumbers:
@@ -79,7 +83,7 @@ section .text
             mov r8d, 2          ; value
             mov r9d, 0          ; index
             
-            printLoop:
+            .loop:
                 mov rax, [numbers]
 
                 cmp byte [rax + r9], 0
@@ -89,7 +93,7 @@ section .text
                     inc r9d
                     inc r8d
                     cmp r9, rbp        ;return at array length
-                    jnge printLoop
+                    jnge .loop
                     ret
                     
             handlePrime:

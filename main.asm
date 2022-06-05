@@ -3,10 +3,10 @@
 
 section .bss 
     buffer resb 100
-    numbers resb 0
+    numbers resq 1
 
 section .data
-    arrayLength db 0
+    arrayLength dq 0
 
 section .text
     global _start
@@ -37,9 +37,8 @@ section .text
             loop2:
                 inc r10
                 inc r11
-
-                mov r12b, byte [rax + r10]             
-                cmp r12b, 0                     
+     
+                cmp byte [rax + r10], 0             
                 jnz loop2
 
                 ret
@@ -82,9 +81,8 @@ section .text
             
             printLoop:
                 mov rax, [numbers]
-                mov r11b, byte [rax + r9]
 
-                cmp r11b, 0
+                cmp byte [rax + r9], 0
                 je handlePrime
                 
                 loopend:
