@@ -9,12 +9,12 @@ section .text
 
     _start:
         mov edi, storage
-        call program
+        call skateboard
         call display
 
         exit
         
-        program:
+        skateboard:
             push rdi
             input string
             pop rdi

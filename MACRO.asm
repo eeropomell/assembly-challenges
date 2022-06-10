@@ -16,6 +16,13 @@ section .bss
     digit resb 0
     length resb 1
     number resb 1
+    buffer resb 20
+
+section .data
+    newline db 10
+    carriage db 13
+    null db 0
+    space db 32
 
 ; for printing numbers (int)
 
@@ -60,9 +67,9 @@ section .bss
 %endmacro
 
 %macro print 2
+    mov esi, %1
     mov eax, SYSWRITE
     mov edi, 1
-    mov esi, %1
     mov edx, %2
     syscall
 %endmacro
@@ -75,37 +82,6 @@ section .bss
     cmp ah, 0
 %endmacro
 
-%macro crossOut 4
-    xor rdi, rdi     ;edi keeps track of how many numbers were crossed out
-                     ;if 0 end loop
-    mov rbx, %1     ;array
-    add rbx, %2     ;move position to starting index
-    mov rax, %3     ;every nth number to be crossed out 
-
-    mov rbp, %4     ; array length
-    mov rcx, 0      ;counter
-    
-    %%loop:
-
-        add rcx, rax
-        cmp rcx, rbp
-        jge %%exit
-
-        add rbx, rax
-        cmp byte [rbx], 0           
-        je %%crossout
-
-        jmp %%loop
-    %%crossout:
-        mov byte [rbx], 1
-        inc rdi
-        jmp %%loop
-
-    %%exit:
-        cmp rdi, 0
-%endmacro
-
-
 ;example:
 ;"123"  -> starting from 1
 
@@ -115,12 +91,16 @@ section .bss
 
 %macro stringToNumber 1
     mov rdi, 0                 ; number stored here
-    mov ebx, %1  
-    mov ecx, 0   
+    mov ebp, %1  
+    mov ecx, 0 
+
+    cmp byte [ebp], "-"
+    jne %%loop
+    inc ecx
 
     %%loop:
     xor esi, esi
-    mov sil, byte [ebx + ecx]
+    mov sil, byte [ebp + ecx]
     sub sil, 48
 
     cmp esi, 9                  ;if this is greater than 9 the string has ended
@@ -133,6 +113,81 @@ section .bss
 
     inc ecx
     jmp %%loop
-    
+
     %%exit:
+        cmp byte [ebp], "-"
+        jne %%around
+            neg rdi
+        %%around:
+%endmacro
+
+%macro getStringLength 1
+    mov edx, %1
+    xor ecx, ecx      ;counter
+
+    .loop:
+        mov bl, [edx + ecx]
+        inc ecx
+
+        cmp bl, 10
+        jne .loop
+    sub ecx, 1
+%endmacro
+
+
+
+%macro divideBy2 1
+
+    xor edx, edx
+    mov eax, %1
+    mov esi, 2
+    div esi
+%endmacro
+
+%macro copyString 2
+    mov r8d, %1
+    mov r9d, %2
+    getStringLength r8d
+
+    xor edx, edx
+    loop:
+        mov sil, byte [r8d + edx]
+        mov byte [r9d + edx], sil
+        inc edx
+
+        cmp edx, ecx
+        jng loop
+%endmacro
+
+
+%macro mathPow  2
+    mov rbx, %1
+    mov rcx, 1
+    mov rax, rbx
+
+    %%loop:
+        mul rbx
+
+        inc rcx
+        cmp rcx, %2
+        jne %%loop
+%endmacro
+
+
+
+%macro input 1
+    mov eax, SYSREAD
+    mov edi, 1
+    mov esi, buffer
+    mov edx, 20
+    syscall
+    mov esi, buffer
+    mov edi, %1
+    %%loop:
+        cmp byte [esi], 0
+        je %%exitinput
+        movsb
+        jmp %%loop
+    
+    %%exitinput:
 %endmacro
