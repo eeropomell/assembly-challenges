@@ -125,12 +125,16 @@ section .data
     mov edx, %1
     xor ecx, ecx      ;counter
 
-    .loop:
+    %%loop:
         mov bl, [edx + ecx]
         inc ecx
 
+        cmp bl, 0
+        je %%exit
         cmp bl, 10
-        jne .loop
+        je %%exit
+        jmp %%loop
+    %%exit:
     sub ecx, 1
 %endmacro
 
@@ -161,16 +165,32 @@ section .data
 
 
 %macro mathPow  2
+    push rcx
+    push rbx
+    push rdx
+    mov r15, %2
     mov rbx, %1
     mov rcx, 1
     mov rax, rbx
+
+    cmp r15d, 1
+    je %%exit
+    cmp r15d, 0
+    jnz %%loop
+    mov rax, 1
+    jmp %%exit
 
     %%loop:
         mul rbx
 
         inc rcx
-        cmp rcx, %2
+        cmp rcx, r15
         jne %%loop
+    
+    %%exit:
+    pop rdx
+    pop rbx
+    pop rcx
 %endmacro
 
 
