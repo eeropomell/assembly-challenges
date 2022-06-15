@@ -11,18 +11,42 @@ SYSWRITE equ 1
 SYSOPEN equ 2
 SYSCLOSE equ 3
 SYSSEEK equ 8
+true equ 1
+false equ 0
+
+C0 equ 0000000100000000b
+C3 equ 0100000000000000b
+
+infinity equ 01111111100000000000000000000000b
 
 section .bss
     digit resb 0
     length resb 1
-    number resb 1
+    number resq 1
     buffer resb 20
+    result resd 1
+
 
 section .data
     newline db 10
     carriage db 13
     null db 0
     space db 32
+    minus db false
+    point db false
+    two dd 2.0
+    ten dd 10.0
+    round dd 0.000005
+    one dd 1.0
+    root dd 1.0
+    three dd 3.0
+    zero dd 0.0
+    smallvalue dd 0.001
+    testvalue dw 0
+
+    sign db 0
+    exponent dw 0
+    fraction dd 0
 
 ; for printing numbers (int)
 
@@ -103,7 +127,7 @@ section .data
     mov sil, byte [ebp + ecx]
     sub sil, 48
 
-    cmp esi, 9                  ;if this is greater than 9 the string has ended
+    cmp esi, 9                  ; if this is greater than 9 the string has ended
     jg %%exit
 
     mov rax, 10
@@ -210,4 +234,113 @@ section .data
         jmp %%loop
     
     %%exitinput:
+%endmacro
+
+%macro atof 1
+    push rdi
+    push rbx
+    mov edi, %1
+    fld1
+    fldz
+
+    cmp byte [edi], "-"
+    jne %%loop
+    mov byte [minus], true
+    inc edi
+
+    %%loop:
+        mov bl, [edi]
+        je %%endofstring
+
+        cmp bl, "."
+        jne around
+        mov byte [point], true
+        inc edi
+        jmp %%loop     
+        around:
+
+        ; ascii to int
+        and bx, 0Fh
+        mov word [num], bx
+
+        ; value * 10
+        fld dword [ten]
+        fmul
+        fiadd dword [num]
+
+        inc edi
+
+        ; if number is after point, divisor * 10
+        cmp byte [point], true
+        jne %%loop
+        fxch
+        fmul dword [ten]
+        fxch
+        jmp %%loop
+
+    %%endofstring:
+        fdivr
+        cmp byte [minus], true
+        jne %%pop
+        fchs
+    %%pop:
+        pop rdi
+        pop rbx
+%endmacro
+
+%macro expand 1
+    push rax
+    mov eax, %1
+    rol eax, 1
+    mov byte [sign], al
+    and byte [sign], 1
+    rol eax, 8
+    mov byte [exponent], al
+    shr eax, 9
+    or eax, 800000h
+    mov dword [fraction], eax
+    pop rax
+%endmacro
+
+%macro combine 1
+    push rsi
+    push rcx
+    push rax
+    push rbx
+    push rdx
+    mov esi, %1
+    xor ecx, ecx
+    mov eax, [fraction]
+    mov ebx, [exponent]
+    mov edx, [sign]
+    shrd ecx, eax, 23
+    shrd ecx, ebx, 8
+    shrd ecx, edx, 1
+    mov dword [esi], ecx
+    pop rdx
+    pop rbx
+    pop rax
+    pop rcx
+    pop rsi
+%endmacro
+
+%macro normalize 1
+    cmp dword [fraction], 0
+    jz end
+    %%loop:
+        mov eax, [fraction]
+        and eax, 0ff000000h
+        jz %%endloop
+        shr [fraction], 1
+        inc word [exponent]
+        jmp %%loop
+    %%endloop:
+    %%loop2:
+        mov eax, [fraction]
+        and eax, 800000h
+        jnz %%end
+        shl [fraction], 1
+        dec word [exponent]
+        jmp %%loop2
+    end:
 %endmacro

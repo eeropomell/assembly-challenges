@@ -1,5 +1,6 @@
 %include "MACRO.asm"
 
+; floating point subtraction without floating point instructions
 
 section .data
     source dd 10.2
@@ -36,10 +37,3 @@ section .text
             printNumber rdx
 
             exit
-
-
-
-
-
-
-        
