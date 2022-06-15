@@ -76,14 +76,3 @@ section .text
             pop rdx
             pop rax
             ret
-
-
-        
-        
-
-
-
-
-
-
-        
