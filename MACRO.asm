@@ -23,8 +23,11 @@ section .bss
     digit resb 0
     length resb 1
     number resq 1
-    buffer resb 20
+    buffer resb 320
+    buffer2 resb 10
     result resd 1
+    temp resb 20
+    tempString resb 20
 
 
 section .data
@@ -51,6 +54,10 @@ section .data
 ; for printing numbers (int)
 
 %macro printNumber 1
+    push rcx
+    push rax
+    push rdx
+
     mov rax, %1
 
     %%printInt:
@@ -87,15 +94,30 @@ section .data
         dec rcx
         cmp rcx, digit      ; first byte of digit (10)
         jge %%printLoop
+        pop rdx
+        pop rax
+        pop rcx
 
 %endmacro
 
 %macro print 2
+    push rdi
+    push rax
+    push rdi
+    push rdx
+    push rsi
+    push rcx
     mov esi, %1
     mov eax, SYSWRITE
     mov edi, 1
     mov edx, %2
     syscall
+    pop rcx
+    pop rsi
+    pop rdx
+    pop rdi
+    pop rax
+    pop rdi
 %endmacro
     
 %macro mod 1
@@ -220,20 +242,31 @@ section .data
 
 
 %macro input 1
+    push rax
+    push rdi
+    push rsi
+    push rdx
     mov eax, SYSREAD
     mov edi, 1
-    mov esi, buffer
+    mov esi, buffer2
     mov edx, 20
     syscall
-    mov esi, buffer
+    mov esi, buffer2
     mov edi, %1
+
+    ; this loop makes sure the string is the correct size
     %%loop:
         cmp byte [esi], 0
         je %%exitinput
+        cmp byte [esi], 10
+        je %%exitinput
         movsb
         jmp %%loop
-    
     %%exitinput:
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
 %endmacro
 
 %macro atof 1
@@ -343,4 +376,55 @@ section .data
         dec word [exponent]
         jmp %%loop2
     end:
+%endmacro
+
+
+%macro reverseString 2
+    mov edi, %1
+    mov eax, %2
+    copyString edi, tempString          ; store it in a copy
+    mov r8d, tempString
+    mov [eax], r8d                      ; make destination point at copy
+    getStringLength tempString         ;returns ecx
+    mov ebx, ecx
+    xor ecx, ecx
+
+    mov ebp, 0
+
+    push rax
+    divideBy2 ebx
+    mov ebp, eax
+    pop rax
+
+    ; loop switches current index with opposite index
+    ; for example if string length is 10 and current index is 2
+    ; it will exchange characters at index 2 and index 8
+    %%loop:
+        sub ebx, 1              
+
+        mov sil, [tempString + ecx]
+        xchg sil, [tempString + ebx]
+        mov [tempString + ecx], sil
+        inc ecx
+        cmp ecx, ebp                    ;loop until reaches half of string
+        jne %%loop
+%endmacro
+
+
+; eax returns negative if file doesnt exist
+%macro openfile 1
+    mov eax, SYSOPEN
+    mov rdi, %1
+    mov esi, 2
+    mov edx, 0777
+    syscall
+%endmacro
+
+
+%macro newfile 1
+    mov eax, SYSOPEN
+    mov rdi, %1
+    mov esi, 64 + 512 + 2
+    mov edx, 0777
+    syscall
 %endmacro

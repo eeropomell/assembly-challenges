@@ -4,7 +4,6 @@
 
 section .bss 
     f2name resb 20
-    srcfile resb 20
 
 section .data
     nfalert db "file not found", 10, 0
@@ -18,21 +17,18 @@ section .data
     walert db "Bytes written: ", 0
     wlen equ $ -walert
 
-    
-
 section .text
     global _start 
 
     _start:
         print srcalert, srclen
-        input srcfile
-        openfile srcfile
+        input f2name
+        openfile f2name
         cmp eax, 0
         jl notfound
         push rax
 
         print destalert, destlen
-        
         input f2name
 
         openfile f2name
@@ -67,7 +63,7 @@ section .text
 
             ; bytes written
             add ebx, eax
-            
+
             mov edx, eax
             mov edi, [rsp + 8]
             mov eax, SYSWRITE
@@ -83,25 +79,3 @@ section .text
             jmp end
 
         exit
-        
-            
-            
-
-            
-
-            
-
-
-
-        
-
-
-        
-        
-
-
-
-
-
-
-        

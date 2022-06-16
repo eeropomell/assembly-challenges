@@ -1,6 +1,6 @@
 %include "MACRO.asm"
 
-; reverses a string idk what you expected
+; reverses a string idk what you expected 
 ; takes in a source and a destination
 ; also works when they are equal
 
