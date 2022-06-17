@@ -1,5 +1,9 @@
 %include "MACRO.asm"
 
+
+; reads the file and prints the highest number, the name of the person who had the highest number and the number of columns
+
+
 section .bss 
     num resb 5
     name resb 20
@@ -18,6 +22,12 @@ section .text
         printNumber rdi             ; highest number
         print name, 20              ; name of highest number 
         printNumber rbx             ; columns
+
+        ; example display
+        
+        ; 500000
+        ; future
+        ; 10
 
         exit
 

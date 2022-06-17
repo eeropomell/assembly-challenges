@@ -57,6 +57,9 @@ section .data
     push rcx
     push rax
     push rdx
+    push rbx
+    push rsi
+    push rdi
 
     mov rax, %1
 
@@ -94,9 +97,13 @@ section .data
         dec rcx
         cmp rcx, digit      ; first byte of digit (10)
         jge %%printLoop
+        pop rdi
+        pop rsi
+        pop rbx
         pop rdx
         pop rax
         pop rcx
+
 
 %endmacro
 
@@ -136,6 +143,10 @@ section .data
 ;3 + 12 * 10 = 123
 
 %macro stringToNumber 1
+    push rbp
+    push rcx
+    push rsi
+    push rax
     mov rdi, 0                 ; number stored here
     mov ebp, %1  
     mov ecx, 0 
@@ -165,6 +176,10 @@ section .data
         jne %%around
             neg rdi
         %%around:
+    pop rax
+    pop rsi
+    pop rcx
+    pop rbp
 %endmacro
 
 %macro getStringLength 1
